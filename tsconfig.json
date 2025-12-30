@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2022", // Or a newer ES version supported by your Node.js environment
+    "module": "commonjs", // Or "esnext" for the latest ES module features
+    "moduleResolution": "node", // Important for resolving modules in Node.js environments
+    "outDir": "./dist", // Directory for compiled JavaScript files
+    "rootDir": "./src", // Root directory of your TypeScript source files
+    "esModuleInterop": true, // Enables default imports for CommonJS modules
+    "forceConsistentCasingInFileNames": true, // Enforces consistent casing in file names
+    "strict": true, // Enables all strict type-checking options
+    "skipLibCheck": true, // Skips type checking of declaration files
+    "sourceMap": true, // Generates source map files for debugging
+    "declaration": true, // Generates declaration files (.d.ts)
+    "resolveJsonModule": true, // Allows importing JSON modules
+    // Stricter Typechecking Options
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    "allowSyntheticDefaultImports": true,
+    "noEmit": false
+  },
+  "include": ["src/**/*.ts"], // Files to include in compilation
+  "exclude": ["node_modules"] // Files to exclude from compilation
+}
