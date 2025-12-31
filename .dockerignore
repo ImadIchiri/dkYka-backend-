@@ -1,0 +1,18 @@
+# Node modules (will be installed inside the container)
+node_modules
+npm-debug.log*
+
+# Build output
+dist/
+src/generated/prisma
+
+# Editor and OS files
+.vscode
+.DS_Store
+
+# Environment variables (keep secret)
+.env
+
+# Git files
+.git
+.gitignore
