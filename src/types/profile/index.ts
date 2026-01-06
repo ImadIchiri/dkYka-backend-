@@ -6,15 +6,16 @@ export type UpdateProfileInput = {
   username?: string;
 };
 
-// Pour retourner un profil
 export type ProfileOutput = {
-  id: string;
-  userId: string;
-  fullName?: string | null;
-  bio?: string | null;
-  avatarUrl?: string | null;
-  coverImage?: string | null;
+  id: string;          // profile.id
+  userId: string;      // user.id
   username: string;
-  followersCount?: number;
-  followingCount?: number;
+
+  fullName: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  coverImage: string | null;
+
+  followersCount: number;
+  followingCount: number;
 };

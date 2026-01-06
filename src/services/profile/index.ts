@@ -1,159 +1,159 @@
 import { prisma } from "../../lib/prisma";
 import type { UpdateProfileInput, ProfileOutput } from "../../types/profile";
 
-// 🔹 Mon profil
+/*
+   My profile (via User)
+*/
 export const getMyProfile = async (userId: string): Promise<ProfileOutput | null> => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      username: true,
-      profile: {
-        select: {
-          fullName: true,
-          bio: true,
-          avatarUrl: true,
-          coverImage: true,
-        },
-      },
+  const profile = await prisma.profile.findUnique({
+    where: { userId },
+    include: {
       followers: true,
       follows: true,
+      user: true,
     },
   });
 
-  if (!user) return null;
+  if (!profile) return null;
 
   return {
-    id: user.id,
-    userId: user.id,
-    username: user.username,
-    fullName: user.profile?.fullName ?? null,
-    bio: user.profile?.bio ?? null,
-    avatarUrl: user.profile?.avatarUrl ?? null,
-    coverImage: user.profile?.coverImage ?? null,
-    followersCount: user.followers.length,
-    followingCount: user.follows.length,
+    id: profile.id,
+    userId: profile.userId,
+    username: profile.username,
+    fullName: profile.fullName,
+    bio: profile.bio,
+    avatarUrl: profile.avatarUrl,
+    coverImage: profile.coverImage,
+    followersCount: profile.followers.length,
+    followingCount: profile.follows.length,
   };
 };
 
-// 🔹 Update profil sécurisé
+/*
+   Update my profile
+*/
 export const updateMyProfile = async (
   userId: string,
   data: UpdateProfileInput
 ): Promise<ProfileOutput> => {
-  // filtrer uniquement les champs définis
   const updateData: Partial<UpdateProfileInput> = {};
-
   if (data.fullName !== undefined) updateData.fullName = data.fullName;
   if (data.bio !== undefined) updateData.bio = data.bio;
   if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl;
   if (data.coverImage !== undefined) updateData.coverImage = data.coverImage;
+  if (data.username !== undefined) updateData.username = data.username;
 
-  const updatedProfile = await prisma.profile.upsert({
+  const profile = await prisma.profile.update({
     where: { userId },
-    update: updateData,
-    create: { userId, ...updateData },
-  });
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: { followers: true, follows: true },
+    data: updateData,
+    include: {
+      followers: true,
+      follows: true,
+      user: true,
+    },
   });
 
   return {
-    id: updatedProfile.id,
-    userId,
-    username: user?.username ?? "",
-    fullName: updatedProfile.fullName,
-    bio: updatedProfile.bio,
-    avatarUrl: updatedProfile.avatarUrl,
-    coverImage: updatedProfile.coverImage,
-    followersCount: user?.followers.length ?? 0,
-    followingCount: user?.follows.length ?? 0,
+    id: profile.id,
+    userId: profile.userId,
+    username: profile.username,
+    fullName: profile.fullName,
+    bio: profile.bio,
+    avatarUrl: profile.avatarUrl,
+    coverImage: profile.coverImage,
+    followersCount: profile.followers.length,
+    followingCount: profile.follows.length,
   };
 };
 
-// 🔹 Visiter profil par username
+/*
+   Visit profile by username
+*/
 export const getProfileByUsername = async (
   username: string
 ): Promise<ProfileOutput | null> => {
-  const user = await prisma.user.findUnique({
+  const profile = await prisma.profile.findUnique({
     where: { username },
-    select: {
-      id: true,
-      username: true,
-      profile: true,
+    include: {
       followers: true,
       follows: true,
+      user: true,
     },
   });
 
-  if (!user) return null;
+  if (!profile) return null;
 
   return {
-    id: user.id,
-    userId: user.id,
-    username: user.username,
-    fullName: user.profile?.fullName ?? null,
-    bio: user.profile?.bio ?? null,
-    avatarUrl: user.profile?.avatarUrl ?? null,
-    coverImage: user.profile?.coverImage ?? null,
-    followersCount: user.followers.length,
-    followingCount: user.follows.length,
+    id: profile.id,
+    userId: profile.userId,
+    username: profile.username,
+    fullName: profile.fullName,
+    bio: profile.bio,
+    avatarUrl: profile.avatarUrl,
+    coverImage: profile.coverImage,
+    followersCount: profile.followers.length,
+    followingCount: profile.follows.length,
   };
 };
 
-// 🔹 Follow user
-export const followUser = async (userId: string, targetUserId: string) => {
+/*
+   Follow / Unfollow (PROFILE ↔ PROFILE)
+*/
+export const followUser = async (myProfileId: string, targetProfileId: string) => {
   return prisma.follow.create({
-    data: { followerId: userId, followingId: targetUserId },
+    data: {
+      followerId: myProfileId,
+      followingId: targetProfileId,
+    },
   });
 };
 
-// 🔹 Unfollow user
-export const unfollowUser = async (userId: string, targetUserId: string) => {
+export const unfollowUser = async (myProfileId: string, targetProfileId: string) => {
   return prisma.follow.delete({
     where: {
-      followerId_followingId: { followerId: userId, followingId: targetUserId },
+      followerId_followingId: {
+        followerId: myProfileId,
+        followingId: targetProfileId,
+      },
     },
   });
 };
 
-// 🔹 Followers
-export const getFollowers = async (userId: string) => {
+/*
+   Followers / Following
+*/
+export const getFollowers = async (profileId: string) => {
   return prisma.follow.findMany({
-    where: { followingId: userId },
+    where: { followingId: profileId },
     include: {
-      follower: { select: { id: true, username: true } },
+      follower: {
+        select: { id: true, username: true, avatarUrl: true },
+      },
     },
   });
 };
 
-// 🔹 Following
-export const getFollowing = async (userId: string) => {
+export const getFollowing = async (profileId: string) => {
   return prisma.follow.findMany({
-    where: { followerId: userId },
+    where: { followerId: profileId },
     include: {
-      following: { select: { id: true, username: true } },
+      following: {
+        select: { id: true, username: true, avatarUrl: true },
+      },
     },
   });
 };
 
-// 🔹 Posts d’un profil
-export const getUserPosts = async (userId: string) => {
+/*
+   Posts d’un profil
+*/
+export const getUserPosts = async (profileId: string) => {
   return prisma.post.findMany({
-    where: { authorId: userId },
-    include: { comments: true, media: true },
+    where: { authorId: profileId },
+    include: {
+      comments: true,
+      media: true,
+    },
     orderBy: { createdAt: "desc" },
   });
-};
-
-// 🔹 Favoris (placeholder)
-export const getUserFavorites = async (_userId: string) => {
-  return [];
-};
-
-// 🔹 Tags (placeholder)
-export const getUserTags = async (_userId: string) => {
-  return [];
 };
