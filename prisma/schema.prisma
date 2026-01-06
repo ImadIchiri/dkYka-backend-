@@ -39,34 +39,12 @@ model User {
   roleId String?
   role   Role?   @relation(fields: [roleId], references: [id])
 
-  profile         Profile?
-  privacySettings PrivacySettings?
-  refreshTokens   RefreshToken[]
-  auditLogs       AuditLog[]
+  profile Profile?
 
-  posts         Post[]
-  comments      Comment[]
-  stories       Story[]
-  messagesSent  Message[]      @relation("MessageSender")
-  messagesRecv  Message[]      @relation("MessageReceiver")
-  notifications Notification[]
-
-  follows   Follow[] @relation("Follower")
-  followers Follow[] @relation("Following")
-
-  communityMember CommunityMember[]
-
-  archived       Archive[]
-  deletedItems   DeletedItem[]
-  medias         Media[]
-  storyViews     StoryView[]
-  storyReactions StoryReaction[]
-  storyReplies   StoryReply[]
-  storyReports   StoryReport[]
-  storyHides     StoryHide[]
-  blockedUsers   StoryBlock[]    @relation("Blocker")
-  blockedBy      StoryBlock[]    @relation("Blocked")
-  communityPosts CommunityPost[]
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+  reactions CommentReaction[]
+  
 }
 
 model Role {
@@ -133,6 +111,8 @@ model Profile {
   avatarUrl  String?
   coverImage String?
   location   String?
+  dateOfBirth DateTime?
+  createdAt  DateTime @default(now())
   isPrivate  Boolean @default(false)
 
   posts    Post[]
@@ -203,9 +183,25 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
 
-  post   Post @relation(fields: [postId], references: [id])
-  author User @relation(fields: [authorId], references: [id])
+  post   Post    @relation(fields: [postId], references: [id])
+  author Profile @relation(fields: [authorId], references: [id])
+  reactions CommentReaction[]
 }
+
+model CommentReaction {
+  id        String   @id @default(uuid())
+  type      String   // like, love, haha
+  userId    String
+  commentId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+
+  comment Comment @relation(fields: [commentId], references: [id])
+
+  @@unique([commentId, userId])
+}
+
 
 model Media {
   id              String  @id @default(uuid())
