@@ -7,18 +7,16 @@ const router = Router();
 router.get("/me", controller.myProfile);
 router.put("/me", controller.updateProfile);
 
-// Followers & Following
-router.get("/followers/:userId", controller.followers);
-router.get("/following/:userId", controller.following);
-
-// Posts
-router.get("/posts/:userId", controller.posts);
+// Followers / Following / Posts
+router.get("/followers/:profileId", controller.followers);
+router.get("/following/:profileId", controller.following);
+router.get("/posts/:profileId", controller.posts);
 
 // Visit profile
 router.get("/:username", controller.visitProfile);
 
-// Follow / Unfollow
-router.post("/follow/:userId", controller.follow);
-router.delete("/unfollow/:userId", controller.unfollow);
+// Follow system
+router.post("/follow/:profileId", controller.follow);
+router.delete("/unfollow/:profileId", controller.unfollow);
 
 export default router;
