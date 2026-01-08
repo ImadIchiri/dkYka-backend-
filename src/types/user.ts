@@ -2,8 +2,9 @@ export type RBACRole = {
   id: string;
   name: string;
   description?: string | null;
+
   inherits: string[];
-  permissions: any[];
+  permissions: RBACPermission[];
 };
 
 export type RBACPermission = {
