@@ -1,19 +1,19 @@
 services:
   # PostgreSQL Database
   postgres:
-    image: postgres:latest
+    image: postgres:16
     container_name: dkyka_db_container
     restart: always
     environment:
-      - POSTGRES_DB=postgres
+      - POSTGRES_DB=dkyka_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=root
     ports:
-      - "5432:5432"
+      - "5005:5432"
     networks:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dkyka_db"]
       interval: 5s
       timeout: 2s
       retries: 20
@@ -25,24 +25,24 @@ services:
         max-size: "10m"
         max-file: "3"
   # Node.js Application
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: dkyka_api_server_container
-    ports:
-      - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    env_file:
-      - .env
-    volumes:
-      - .:/app
-      - /app/node_modules
-    command: npm run dev
-    networks:
-      - backend
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.dev
+  #   container_name: dkyka_api_server_container
+  #   ports:
+  #     - "8085:8085"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #   command: npm run dev
+  #   networks:
+  #     - backend
 
 networks:
   backend:
