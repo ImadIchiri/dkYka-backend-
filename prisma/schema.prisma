@@ -13,6 +13,7 @@ datasource db {
 enum MediaType {
   IMAGE
   VIDEO
+  AUDIO 
 }
 
 enum StoryVisibility {
@@ -30,6 +31,13 @@ enum ReportStatus {
 enum ConversationType {
   PRIVATE
   GROUP
+}
+
+enum ConversationStatus {
+  PENDING    
+  ACCEPTED   
+  DECLINED   
+  BLOCKED    
 }
 
 // --- AUTH & RBAC ---
@@ -305,7 +313,7 @@ model StoryBlock {
 model Message {
   id             String   @id @default(uuid())
   conversationId String
-  senderId       String
+  senderProfileId       String
   content        String?
   isEdited       Boolean  @default(false)
   deliveredAt    DateTime?
@@ -315,13 +323,15 @@ model Message {
 
   media        Media[]
   conversation Conversation @relation(fields: [conversationId], references: [id])
-  sender        Profile    @relation("MessageSender", fields: [senderId], references: [id])
+  sender        Profile    @relation("MessageSender", fields: [senderProfileId], references: [id])
 }
 
 model Conversation {
   id        String           @id @default(uuid())
   type      ConversationType
+  status        ConversationStatus @default(PENDING)
   title     String?
+  avatarUrl String?
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   lastMessageId String?
