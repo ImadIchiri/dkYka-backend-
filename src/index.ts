@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth";
 
 import commentRoutes from "./routes/commentaire";
 import profileRoutes from "./routes/profile";
+import chatBootRoutes from "./routes/chatboot";
 
 const app: Express = express();
 app.use(express.json());
@@ -27,9 +28,10 @@ app.use(express.urlencoded({ extended: true }));
 initSocket(server);
 
 // ROUTES
-app.use("/api/v1/comments", commentRoutes);
-app.use("/api/v1/profiles", profileRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/chatboot", chatBootRoutes);
+app.use("/api/v1/profiles", profileRoutes);
+app.use("/api/v1/comments", commentRoutes);
 
 app.get("/", (_req: Request, res: Response) => {
   res.send("Express + TypeScript Server");
