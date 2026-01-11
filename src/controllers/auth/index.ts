@@ -9,7 +9,7 @@ import { SafeUser } from "../../types/user";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
-    const { fullName, username, email, password, roleId } = req.body;
+    const { fullName, username, email, password } = req.body;
 
     // 1) Check if User already exists (email)
     const existingUser = await userService.getUserByEmail(email);
@@ -29,38 +29,38 @@ export const registerUser = async (req: Request, res: Response) => {
         .json({ success: false, message: "Username already taken." });
     }
 
-    // 3) Verify Role existence
-    if (roleId) {
-      const checkRole = await prisma.role.findUnique({ where: { id: roleId } });
-      if (!checkRole) {
-        return res
-          .status(404)
-          .json({ success: false, message: `No Role Found With Id ${roleId}` });
-      }
+    // 3) Automatically assign the "USER" role
+    const defaultRole = await prisma.role.findUnique({
+      where: { name: "USER" },
+    });
+
+    if (!defaultRole) {
+      return res.status(500).json({
+        success: false,
+        message: "Default registration role not found. Please contact admin.",
+      });
     }
 
-    // 4) Create User and Profile (Nested Write)
+    // 4) Create User and Profile (Nested Write) + with the defaultRole.id (USER)
     const newUser = await userService.createUser({
       email,
       password: await hashPassword(password),
-      roleId,
+      roleId: defaultRole.id,
       profile: { create: { username, fullName } },
     });
 
-    // 5) Fetch user with permissions for the token
-    const userWithPermissions = await prisma.user.findUnique({
-      where: { id: newUser.id },
+    // 5) Fetch only the permissions for the assigned role
+    const rolePermissions = await prisma.rolePermission.findMany({
+      where: { roleId: defaultRole.id },
       include: {
-        role: {
-          include: { permissions: { include: { permission: true } } },
-        },
+        permission: true,
       },
     });
 
-    // 6) Generate Tokens (Mapping permissions to codes)
-    const permissionCodes =
-      userWithPermissions?.role?.permissions.map((rp) => rp.permission.code) ||
-      [];
+    // Extract permission' code
+    // + Generate Tokens (only refreshToken needed for email verification)
+    const permissionCodes = rolePermissions.map((rp) => rp.permission.code);
+
     const { accessToken, refreshToken } = generateTokens({
       id: newUser.id,
       permissions: permissionCodes,
@@ -296,7 +296,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
   }
 };
 
-// 4. Reset Password Action (POST /reset-password?id=...&token=...)
+// Reset Password Action (POST /reset-password?id=...&token=...)
 export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { id, token } = req.query;
